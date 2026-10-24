@@ -1,0 +1,21 @@
+# --- Web API ---
+fastapi
+uvicorn[standard]      # the server that runs FastAPI
+slowapi                # rate limiting
+pydantic               # data validation (used by FastAPI)
+pydantic-settings      # loads settings from .env
+
+# --- LangChain ---
+langchain
+langchain-core
+langchain-community    # FAISS vector store lives here
+langchain-groq         # Groq LLM
+langchain-huggingface  # local embeddings
+
+# --- Embeddings + vector search ---
+sentence-transformers
+torch
+faiss-cpu
+
+# --- Only for local testing, fetches transcripts like your notebook ---
+youtube-transcript-api

@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest
+httpx                  # lets tests call the FastAPI app
+ruff                   # linter / formatter
