@@ -30,6 +30,8 @@ class Settings(BaseSettings):
 
     max_cached_videos: int = 20
 
+    groq_model: str = "openai/gpt-oss-120b"
+
 
 @lru_cache
 def get_settings() -> Settings:
