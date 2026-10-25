@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import store
 from .chunking import build_chunks
 from .config import get_settings
-from .schemas import IngestRequest, IngestResponse
+from .schemas import IngestRequest, IngestResponse, SummaryRequest, VideoSummary
+from .summarize import summarize_video
 
 app = FastAPI(title="YouTube RAG API")
 
@@ -37,3 +38,14 @@ def ingest(req: IngestRequest):
 
     store.add_video(req.video_id, chunks)
     return IngestResponse(video_id=req.video_id, chunks=len(chunks), cached=False)
+
+@app.post("/summary", response_model=VideoSummary)
+def summary(req: SummaryRequest):
+    chunks = store.get_chunks(req.video_id)
+    if chunks is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Video not found. Send its transcript to /ingest first.",
+        )
+    return summarize_video(chunks)
+
