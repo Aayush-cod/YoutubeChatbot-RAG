@@ -48,3 +48,9 @@ def test_recently_used_video_is_kept(monkeypatch):
     store.add_video("c", docs())
     assert store.has_video("a")
     assert not store.has_video("b")
+
+def test_chunks_are_kept_with_the_index():
+    d = docs()
+    store.add_video("vid1", d)
+    assert store.get_chunks("vid1") == d
+    assert store.get_chunks("nope") is None
