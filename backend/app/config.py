@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     # How many chunks to retrieve per question (Step 5)
     top_k: int = 5
 
+    max_cached_videos: int = 20
+
 
 @lru_cache
 def get_settings() -> Settings:
