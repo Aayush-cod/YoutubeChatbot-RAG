@@ -5,6 +5,8 @@ from langchain_core.embeddings import DeterministicFakeEmbedding
 from app import store
 from app.config import Settings
 
+from app.schemas import VideoSummary
+
 
 @pytest.fixture(autouse=True)
 def fake_embeddings(monkeypatch):
@@ -54,3 +56,11 @@ def test_chunks_are_kept_with_the_index():
     store.add_video("vid1", d)
     assert store.get_chunks("vid1") == d
     assert store.get_chunks("nope") is None
+
+def test_summary_is_remembered():
+    store.add_video("vid1", docs())
+    assert store.get_summary("vid1") is None
+
+    s = VideoSummary(summary="s", key_points=[], topics=[])
+    store.set_summary("vid1", s)
+    assert store.get_summary("vid1") == s

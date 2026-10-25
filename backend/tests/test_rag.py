@@ -3,6 +3,7 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
+from app.schemas import ChatTurn
 
 from app import rag, store
 
@@ -38,3 +39,18 @@ def test_chain_returns_model_text():
     fake = GenericFakeChatModel(messages=iter([AIMessage(content="It is at [0:06].")]))
     chain = rag.build_chain(fake)
     assert chain.invoke({"context": "[0:06] hi", "question": "when?"}) == "It is at [0:06]."
+
+def test_to_messages_maps_roles():
+    msgs = rag.to_messages([ChatTurn(role="user", content="hi"), ChatTurn(role="assistant", content="hello")])
+    assert [type(m).__name__ for m in msgs] == ["HumanMessage", "AIMessage"]
+
+
+def test_format_sources_shortens_text():
+    sources = rag.format_sources([Document(page_content="x" * 500, metadata={"start": 65, "end": 70})])
+    assert sources == [{"start": 65, "end": 70, "text": "x" * 200}]
+
+
+def test_clean_token_fixes_brackets_and_spaces():
+    assert rag.clean_token("【") == "["
+    assert rag.clean_token("】") == "]"
+    assert rag.clean_token("a\u202fb") == "a b"

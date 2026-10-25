@@ -10,6 +10,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 from .config import get_settings
 
+from .schemas import VideoSummary
 
 @lru_cache
 def get_embeddings() -> HuggingFaceEmbeddings:
@@ -22,6 +23,7 @@ class VideoEntry:
     """Everything we remember about one video."""
     index: FAISS
     chunks: List[Document]
+    summary: Optional[VideoSummary] = None
 
 
 # video_id -> VideoEntry. The first item is always the least recently used.
@@ -60,3 +62,14 @@ def get_store(video_id: str) -> Optional[FAISS]:
 def get_chunks(video_id: str) -> Optional[List[Document]]:
     entry = _get_entry(video_id)
     return entry.chunks if entry else None
+
+def get_summary(video_id: str) -> Optional[VideoSummary]:
+    entry = _get_entry(video_id)
+    return entry.summary if entry else None
+
+
+def set_summary(video_id: str, summary: VideoSummary) -> None:
+    with _lock:
+        entry = _stores.get(video_id)
+        if entry is not None:
+            entry.summary = summary

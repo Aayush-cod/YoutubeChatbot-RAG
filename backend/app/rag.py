@@ -2,12 +2,14 @@ from functools import lru_cache
 from typing import List
 
 from langchain_core.documents import Document
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_groq import ChatGroq
 
 from .chunking import fmt_time
 from .config import get_settings
+from .schemas import ChatTurn
 from .store import get_store
 
 SYSTEM_PROMPT = """You answer questions about a YouTube video using ONLY the transcript excerpts below.
@@ -24,6 +26,7 @@ Transcript excerpts:
 PROMPT = ChatPromptTemplate.from_messages(
     [
         ("system", SYSTEM_PROMPT),
+        MessagesPlaceholder("history", optional=True),
         ("human", "{question}"),
     ]
 )
@@ -36,6 +39,29 @@ class VideoNotFound(Exception):
 def format_context(docs: List[Document]) -> str:
     """Turn retrieved chunks into text the model can read, with timestamps."""
     return "\n\n".join(f"[{fmt_time(d.metadata['start'])}] {d.page_content}" for d in docs)
+
+
+def to_messages(history: List[ChatTurn]) -> list:
+    """Convert our chat turns into LangChain message objects."""
+    return [
+        HumanMessage(content=t.content) if t.role == "user" else AIMessage(content=t.content)
+        for t in history
+    ]
+
+
+def format_sources(docs: List[Document]) -> List[dict]:
+    """The retrieved chunks, in the shape the extension will show."""
+    return [
+        {"start": d.metadata["start"], "end": d.metadata["end"], "text": d.page_content[:200]}
+        for d in docs
+    ]
+
+_TOKEN_FIXES = str.maketrans({"【": "[", "】": "]", "\u202f": " "})
+
+
+def clean_token(token: str) -> str:
+    """Replace characters this model likes to emit, so the extension sees plain [m:ss]."""
+    return token.translate(_TOKEN_FIXES)
 
 
 def retrieve(video_id: str, question: str) -> List[Document]:

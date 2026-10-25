@@ -1,8 +1,12 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from langchain_core.embeddings import DeterministicFakeEmbedding
+from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
+from langchain_core.messages import AIMessage
 
-from app import main, store
+from app import main, rag, store
 from app.main import app
 from app.schemas import KeyPoint, VideoSummary
 
@@ -70,3 +74,92 @@ def test_summary_for_ingested_video(client, monkeypatch):
 def test_summary_unknown_video_is_404(client):
     r = client.post("/summary", json={"video_id": "nope12345"})
     assert r.status_code == 404
+
+
+def test_summary_is_cached(client, monkeypatch):
+    calls = []
+
+    def fake(chunks):
+        calls.append(1)
+        return VideoSummary(summary="s", key_points=[], topics=[])
+
+    monkeypatch.setattr(main, "summarize_video", fake)
+    client.post("/ingest", json={"video_id": "abcDEF12345", "segments": segments()})
+
+    client.post("/summary", json={"video_id": "abcDEF12345"})
+    client.post("/summary", json={"video_id": "abcDEF12345"})
+
+    assert len(calls) == 1  # the model ran once, the second answer came from memory
+
+
+def fake_llm():
+    return GenericFakeChatModel(messages=iter([AIMessage(content="It is discussed at [0:06].")]))
+
+
+def read_events(response):
+    return [json.loads(line) for line in response.text.splitlines() if line]
+
+
+def test_chat_streams_sources_tokens_done(client, monkeypatch):
+    monkeypatch.setattr(rag, "get_llm", fake_llm)
+    client.post("/ingest", json={"video_id": "abcDEF12345", "segments": segments(200)})
+
+    r = client.post("/chat", json={"video_id": "abcDEF12345", "question": "what is discussed?"})
+
+    assert r.status_code == 200
+    events = read_events(r)
+    assert events[0]["type"] == "sources" and len(events[0]["sources"]) >= 1
+    assert events[-1]["type"] == "done"
+    text = "".join(e["text"] for e in events if e["type"] == "token")
+    assert text.strip() == "It is discussed at [0:06]."
+
+
+def test_chat_unknown_video_is_404(client):
+    r = client.post("/chat", json={"video_id": "nope12345", "question": "hi"})
+    assert r.status_code == 404
+
+
+def test_chat_accepts_history(client, monkeypatch):
+    monkeypatch.setattr(rag, "get_llm", fake_llm)
+    client.post("/ingest", json={"video_id": "abcDEF12345", "segments": segments(200)})
+    history = [
+        {"role": "user", "content": "what is this about?"},
+        {"role": "assistant", "content": "It is about topics."},
+    ]
+
+    r = client.post(
+        "/chat",
+        json={"video_id": "abcDEF12345", "question": "and the second one?", "history": history},
+    )
+
+    assert r.status_code == 200
+    assert read_events(r)[-1]["type"] == "done"
+
+
+def test_chat_reports_model_failure(client, monkeypatch):
+    class BrokenChain:
+        def stream(self, _inputs):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(rag, "build_chain", lambda llm=None: BrokenChain())
+    client.post("/ingest", json={"video_id": "abcDEF12345", "segments": segments(200)})
+
+    r = client.post("/chat", json={"video_id": "abcDEF12345", "question": "hi"})
+
+    events = read_events(r)
+    assert events[-1]["type"] == "error"
+    assert all(e["type"] != "done" for e in events)
+
+
+def test_chat_skips_empty_tokens_and_cleans_brackets(client, monkeypatch):
+    class FakeChain:
+        def stream(self, _inputs):
+            yield from ["", "See ", "【", "0:06", "】", ""]
+
+    monkeypatch.setattr(rag, "build_chain", lambda llm=None: FakeChain())
+    client.post("/ingest", json={"video_id": "abcDEF12345", "segments": segments(200)})
+
+    r = client.post("/chat", json={"video_id": "abcDEF12345", "question": "hi"})
+
+    tokens = [e["text"] for e in read_events(r) if e["type"] == "token"]
+    assert tokens == ["See ", "[", "0:06", "]"]
