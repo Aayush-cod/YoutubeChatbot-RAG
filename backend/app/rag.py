@@ -15,7 +15,7 @@ Each excerpt starts with its timestamp in square brackets, like [1:05].
 
 Rules:
 - If the excerpts do not contain the answer, say the video does not seem to cover it. Do not guess.
-- When you state a fact, cite the timestamp it came from, like [1:05].
+- When you state a fact, cite the timestamp it came from, using plain square brackets exactly like [1:05].
 - Keep answers short and clear.
 
 Transcript excerpts:
