@@ -9,12 +9,14 @@ from langchain_core.messages import AIMessage
 from app import main, rag, store
 from app.main import app
 from app.schemas import KeyPoint, VideoSummary
+from app.config import Settings
 
 
 @pytest.fixture()
 def client(monkeypatch):
     monkeypatch.setattr(store, "get_embeddings", lambda: DeterministicFakeEmbedding(size=32))
     store._stores.clear()
+    main.limiter.reset()
     yield TestClient(app)
     store._stores.clear()
 
@@ -163,3 +165,12 @@ def test_chat_skips_empty_tokens_and_cleans_brackets(client, monkeypatch):
 
     tokens = [e["text"] for e in read_events(r) if e["type"] == "token"]
     assert tokens == ["See ", "[", "0:06", "]"]
+
+
+def test_chat_is_rate_limited(client, monkeypatch):
+    monkeypatch.setattr(main, "get_settings", lambda: Settings(rate_limit_chat="2/minute"))
+    body = {"video_id": "nope12345", "question": "hi"}
+
+    assert client.post("/chat", json=body).status_code == 404  # allowed (video just isn't there)
+    assert client.post("/chat", json=body).status_code == 404  # allowed
+    assert client.post("/chat", json=body).status_code == 429  # third call in a minute: blocked

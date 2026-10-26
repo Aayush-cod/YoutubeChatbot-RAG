@@ -1,9 +1,12 @@
 import json
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from . import rag, store
 from .chunking import build_chunks
@@ -13,13 +16,17 @@ from .summarize import summarize_video
 
 logger = logging.getLogger(__name__)
 
+limiter = Limiter(key_func=get_remote_address)  # one counter per client IP
+
 app = FastAPI(title="YouTube RAG API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Browsers block web pages from calling other websites unless the server allows it (CORS).
 # "*" is fine while developing; we'll tighten it before deploying.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in get_settings().cors_origins.split(",")],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -31,7 +38,8 @@ def health():
 
 
 @app.post("/ingest", response_model=IngestResponse)
-def ingest(req: IngestRequest):
+@limiter.limit(lambda: get_settings().rate_limit_ingest)
+def ingest(request: Request, req: IngestRequest):
     # Already processed this video? Reuse it instead of embedding again.
     existing = store.get_chunks(req.video_id)
     if existing is not None:
@@ -45,8 +53,10 @@ def ingest(req: IngestRequest):
     store.add_video(req.video_id, chunks)
     return IngestResponse(video_id=req.video_id, chunks=len(chunks), cached=False)
 
+
 @app.post("/summary", response_model=VideoSummary)
-def summary(req: SummaryRequest):
+@limiter.limit(lambda: get_settings().rate_limit_summary)
+def summary(request: Request, req: SummaryRequest):
     cached = store.get_summary(req.video_id)
     if cached is not None:
         return cached
@@ -68,7 +78,8 @@ def _line(event: dict) -> str:
 
 
 @app.post("/chat")
-def chat(req: ChatRequest):
+@limiter.limit(lambda: get_settings().rate_limit_chat)
+def chat(request: Request, req: ChatRequest):
     # Retrieve BEFORE streaming starts, so a missing video can still be a proper 404.
     try:
         docs = rag.retrieve(req.video_id, req.question)

@@ -8,6 +8,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
+# BaseSettings	Defines a settings class that can load values from environment variables and configured sources.
+# SettingsConfigDict	Configures how the settings class loads and validates those values.
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ROOT_DIR / ".env",
@@ -31,6 +35,11 @@ class Settings(BaseSettings):
     max_cached_videos: int = 20
 
     groq_model: str = "openai/gpt-oss-120b"
+
+    rate_limit_ingest: str = "10/minute"
+    rate_limit_summary: str = "5/minute"
+    rate_limit_chat: str = "20/minute"
+    cors_origins: str = "*"
 
 
 @lru_cache
