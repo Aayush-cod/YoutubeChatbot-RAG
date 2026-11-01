@@ -1,0 +1,25 @@
+{
+  "video_id": "YmLp8qe87A0",
+  "questions": [
+    {"question": "What game did Claude Shannon play with his wife, and what was he really trying to measure?", "start": "0:22", "end": "0:47"},
+    {"question": "Why did the Eliza chatbot seem intelligent even though it understood nothing?", "start": "2:16", "end": "2:50"},
+    {"question": "What simple logic problem could a single-layer perceptron not solve?", "start": "9:16", "end": "9:45"},
+    {"question": "How does backpropagation train a multi-layer network?", "start": "9:47", "end": "10:15"},
+    {"question": "What does a trained neural network model actually consist of on disk?", "start": "11:20", "end": "11:40"},
+    {"question": "Who invented byte pair encoding and what was it originally meant for?", "start": "16:30", "end": "16:55"},
+    {"question": "Why does the number of tokens matter when using an LLM through an API?", "start": "17:33", "end": "17:50"},
+    {"question": "Which research team showed that word embeddings capture meaning through arithmetic, and what surprising result did they find?", "start": "22:48", "end": "23:25"},
+    {"question": "How do you measure how similar two embedding vectors are?", "start": "24:14", "end": "24:30"},
+    {"question": "While training the simple embedding model, what happens to the vectors of words that never appear near each other?", "start": "28:50", "end": "29:25"},
+    {"question": "What weakness of older translation models did the attention idea fix?", "start": "31:24", "end": "31:52"},
+    {"question": "In self-attention, what role does each of the three vectors play for a token?", "start": "33:10", "end": "33:34"},
+    {"question": "How many parameters does the author's tiny transformer have compared to GPT-OSS 120B?", "start": "39:13", "end": "39:45"},
+    {"question": "What are logits and how are they turned into probabilities?", "start": "41:38", "end": "41:58"},
+    {"question": "How does an LLM produce a whole paragraph if each pass only gives it one new token?", "start": "42:55", "end": "43:27"},
+    {"question": "Does the model remember earlier requests, or where does a chat's memory live?", "start": "43:28", "end": "44:03"},
+    {"question": "What is RLHF and who decides what counts as a good response?", "start": "46:38", "end": "47:00"},
+    {"question": "How can an LLM use tools like web search when all it can output is text?", "start": "47:41", "end": "48:12"},
+    {"question": "When and where was the term artificial intelligence first used?", "start": "48:35", "end": "49:02"},
+    {"question": "Does the author believe LLMs truly understand language?", "start": "50:06", "end": "50:25"}
+  ]
+}
