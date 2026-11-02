@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     rate_limit_chat: str = "20/minute"
     cors_origins: str = "*"
 
+    use_reranker: bool = True
+    rerank_candidates: int = 10
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
 
 @lru_cache
 def get_settings() -> Settings:

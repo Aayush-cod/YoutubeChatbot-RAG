@@ -6,6 +6,7 @@ from langchain_core.messages import AIMessage
 from app.schemas import ChatTurn
 
 from app import rag, store
+from app.config import Settings
 
 
 @pytest.fixture(autouse=True)
@@ -54,3 +55,19 @@ def test_clean_token_fixes_brackets_and_spaces():
     assert rag.clean_token("【") == "["
     assert rag.clean_token("】") == "]"
     assert rag.clean_token("a\u202fb") == "a b"
+
+def test_retrieve_with_reranker_fetches_more_candidates(monkeypatch):
+    seen = {}
+
+    def fake_rerank(question, docs_in, top_n):
+        seen["candidates"] = len(docs_in)
+        return docs_in[:top_n]
+
+    monkeypatch.setattr(rag, "rerank", fake_rerank)
+    monkeypatch.setattr(rag, "get_settings", lambda: Settings(use_reranker=True, rerank_candidates=6, top_k=2))
+    store.add_video("vid1", docs(8))
+
+    result = rag.retrieve("vid1", "chunk 3")
+
+    assert seen["candidates"] == 6   # we asked FAISS for 6 candidates...
+    assert len(result) == 2          # ...and kept 2 after reranking

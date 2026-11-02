@@ -12,6 +12,8 @@ from .config import get_settings
 from .schemas import ChatTurn
 from .store import get_store
 
+from .rerank import rerank
+
 SYSTEM_PROMPT = """You answer questions about a YouTube video using ONLY the transcript excerpts below.
 Each excerpt starts with its timestamp in square brackets, like [1:05].
 
@@ -64,12 +66,24 @@ def clean_token(token: str) -> str:
     return token.translate(_TOKEN_FIXES)
 
 
+# def retrieve(video_id: str, question: str) -> List[Document]:
+#     """Find the top_k chunks of this video closest to the question."""
+#     store = get_store(video_id)
+#     if store is None:
+#         raise VideoNotFound(video_id)
+#     return store.similarity_search(question, k=get_settings().top_k)
+
 def retrieve(video_id: str, question: str) -> List[Document]:
-    """Find the top_k chunks of this video closest to the question."""
+    """Find the best chunks of this video for the question."""
     store = get_store(video_id)
     if store is None:
         raise VideoNotFound(video_id)
-    return store.similarity_search(question, k=get_settings().top_k)
+
+    settings = get_settings()
+    if settings.use_reranker:
+        candidates = store.similarity_search(question, k=settings.rerank_candidates)
+        return rerank(question, candidates, settings.top_k)
+    return store.similarity_search(question, k=settings.top_k)
 
 
 @lru_cache
