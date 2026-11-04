@@ -1,7 +1,6 @@
 import pytest
-from langchain_core.documents import Document
-
 from app.evaluation import first_hit_rank, overlaps, parse_time, summarize_ranks
+from langchain_core.documents import Document
 
 
 def doc(start, end):

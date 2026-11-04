@@ -2,15 +2,14 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from functools import lru_cache
 from threading import Lock
-from typing import List, Optional
 
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from .config import get_settings
-
 from .schemas import VideoSummary
+
 
 @lru_cache
 def get_embeddings() -> HuggingFaceEmbeddings:
@@ -22,8 +21,8 @@ def get_embeddings() -> HuggingFaceEmbeddings:
 class VideoEntry:
     """Everything we remember about one video."""
     index: FAISS
-    chunks: List[Document]
-    summary: Optional[VideoSummary] = None
+    chunks: list[Document]
+    summary: VideoSummary | None = None
 
 
 # video_id -> VideoEntry. The first item is always the least recently used.
@@ -36,7 +35,7 @@ def has_video(video_id: str) -> bool:
         return video_id in _stores
 
 
-def add_video(video_id: str, chunks: List[Document]) -> None:
+def add_video(video_id: str, chunks: list[Document]) -> None:
     """Embed the chunks, build an index, and remember both."""
     index = FAISS.from_documents(chunks, get_embeddings())
     with _lock:
@@ -46,7 +45,7 @@ def add_video(video_id: str, chunks: List[Document]) -> None:
             _stores.popitem(last=False)
 
 
-def _get_entry(video_id: str) -> Optional[VideoEntry]:
+def _get_entry(video_id: str) -> VideoEntry | None:
     with _lock:
         entry = _stores.get(video_id)
         if entry is not None:
@@ -54,16 +53,16 @@ def _get_entry(video_id: str) -> Optional[VideoEntry]:
         return entry
 
 
-def get_store(video_id: str) -> Optional[FAISS]:
+def get_store(video_id: str) -> FAISS | None:
     entry = _get_entry(video_id)
     return entry.index if entry else None
 
 
-def get_chunks(video_id: str) -> Optional[List[Document]]:
+def get_chunks(video_id: str) -> list[Document] | None:
     entry = _get_entry(video_id)
     return entry.chunks if entry else None
 
-def get_summary(video_id: str) -> Optional[VideoSummary]:
+def get_summary(video_id: str) -> VideoSummary | None:
     entry = _get_entry(video_id)
     return entry.summary if entry else None
 

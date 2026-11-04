@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from langchain_core.documents import Document
 
@@ -16,7 +15,7 @@ def overlaps(a_start: float, a_end: float, b_start: float, b_end: float) -> bool
     return a_start < b_end and b_start < a_end
 
 
-def first_hit_rank(docs: List[Document], win_start: int, win_end: int) -> Optional[int]:
+def first_hit_rank(docs: list[Document], win_start: int, win_end: int) -> int | None:
     """Position (1 = best) of the first retrieved chunk that overlaps the answer window.
     Returns None if none of them do."""
     for rank, doc in enumerate(docs, start=1):
@@ -25,7 +24,7 @@ def first_hit_rank(docs: List[Document], win_start: int, win_end: int) -> Option
     return None
 
 
-def summarize_ranks(ranks: List[Optional[int]]) -> dict:
+def summarize_ranks(ranks: list[int | None]) -> dict:
     """Turn one rank per question into the two headline numbers."""
     n = len(ranks)
     if n == 0:

@@ -9,11 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))  # so we can import the app package
 
-from app import rag, store  # noqa: E402
-from app.chunking import build_chunks, fmt_time  # noqa: E402
-from app.config import get_settings  # noqa: E402
-from app.evaluation import first_hit_rank, parse_time, summarize_ranks  # noqa: E402
-from app.schemas import Segment  # noqa: E402
+from app import rag, store
+from app.chunking import build_chunks, fmt_time
+from app.config import get_settings
+from app.evaluation import first_hit_rank, parse_time, summarize_ranks
+from app.schemas import Segment
 
 
 def main() -> None:

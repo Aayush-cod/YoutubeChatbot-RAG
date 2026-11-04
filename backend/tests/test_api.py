@@ -1,17 +1,15 @@
 import json
+import logging
 
 import pytest
+from app import main, rag, store
+from app.config import Settings
+from app.main import app
+from app.schemas import KeyPoint, VideoSummary
 from fastapi.testclient import TestClient
 from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
-
-from app import main, rag, store
-from app.main import app
-from app.schemas import KeyPoint, VideoSummary
-from app.config import Settings
-
-import logging
 
 
 @pytest.fixture()

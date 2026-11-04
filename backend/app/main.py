@@ -12,9 +12,15 @@ from slowapi.util import get_remote_address
 from . import rag, store
 from .chunking import build_chunks
 from .config import get_settings
-from .schemas import ChatRequest, IngestRequest, IngestResponse, SummaryRequest, VideoSummary
-from .summarize import summarize_video
 from .logging_config import setup_logging
+from .schemas import (
+    ChatRequest,
+    IngestRequest,
+    IngestResponse,
+    SummaryRequest,
+    VideoSummary,
+)
+from .summarize import summarize_video
 
 setup_logging(get_settings().log_level)
 logger = logging.getLogger(__name__)

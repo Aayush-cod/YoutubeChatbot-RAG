@@ -1,5 +1,4 @@
 import pytest
-
 from app import rag
 from app import rerank as rerank_module
 

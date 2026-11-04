@@ -1,7 +1,5 @@
-from langchain_core.documents import Document
-
 from app.rerank import rerank
-
+from langchain_core.documents import Document
 
 
 class FakeScorer:

@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List
 
 from langchain_core.documents import Document
 
@@ -9,12 +8,14 @@ from .config import get_settings
 @lru_cache
 def get_reranker():
     """Load the cross-encoder once (a ~90 MB model, downloaded the first time)."""
-    from sentence_transformers import CrossEncoder  # imported here so the app starts fast
+    from sentence_transformers import (
+        CrossEncoder,  # imported here so the app starts fast
+    )
 
     return CrossEncoder(get_settings().reranker_model)
 
 
-def rerank(question: str, docs: List[Document], top_n: int, model=None) -> List[Document]:
+def rerank(question: str, docs: list[Document], top_n: int, model=None) -> list[Document]:
     """Score every chunk against the question and keep the best top_n."""
     if not docs:
         return []

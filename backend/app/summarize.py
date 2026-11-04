@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List
 
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
@@ -27,7 +26,7 @@ Use only the transcript. Do not invent anything.""",
 )
 
 
-def format_transcript(docs: List[Document]) -> str:
+def format_transcript(docs: list[Document]) -> str:
     """One line per chunk, labelled with its start time in seconds."""
     return "\n".join(f"[{d.metadata['start']}] {d.page_content}" for d in docs)
 
@@ -38,7 +37,7 @@ def get_summary_llm():
     return get_llm().with_structured_output(VideoSummary)
 
 
-def summarize_docs(docs: List[Document], structured_llm=None) -> VideoSummary:
+def summarize_docs(docs: list[Document], structured_llm=None) -> VideoSummary:
     chain = SUMMARY_PROMPT | (structured_llm or get_summary_llm())
     return chain.invoke({"transcript": format_transcript(docs)})
 
@@ -67,10 +66,10 @@ Use only the partial summaries. Do not invent anything.""",
 )
 
 
-def group_docs(docs: List[Document], max_chars: int) -> List[List[Document]]:
+def group_docs(docs: list[Document], max_chars: int) -> list[list[Document]]:
     """Split chunks into batches whose total text stays under max_chars."""
-    batches: List[List[Document]] = []
-    current: List[Document] = []
+    batches: list[list[Document]] = []
+    current: list[Document] = []
     size = 0
     for d in docs:
         n = len(d.page_content)
@@ -84,7 +83,7 @@ def group_docs(docs: List[Document], max_chars: int) -> List[List[Document]]:
     return batches
 
 
-def format_partials(parts: List[VideoSummary]) -> str:
+def format_partials(parts: list[VideoSummary]) -> str:
     """Turn partial summaries into text for the reduce step."""
     blocks = []
     for i, p in enumerate(parts, start=1):
@@ -96,7 +95,7 @@ def format_partials(parts: List[VideoSummary]) -> str:
 
 
 def summarize_video(
-    docs: List[Document],
+    docs: list[Document],
     structured_llm=None,
     max_batch_chars: int = MAX_BATCH_CHARS,
 ) -> VideoSummary:

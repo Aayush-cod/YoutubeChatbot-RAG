@@ -1,4 +1,3 @@
-from typing import List
 
 from langchain_core.documents import Document
 
@@ -6,13 +5,13 @@ from .schemas import Segment
 
 
 def build_chunks(
-    segments: List[Segment], max_chars: int, overlap_chars: int
-) -> List[Document]:
+    segments: list[Segment], max_chars: int, overlap_chars: int
+) -> list[Document]:
     """Group caption segments into ~max_chars chunks, keeping start/end times."""
     # 1) drop blank segments
     segs = [s for s in segments if s.text and s.text.strip()]
 
-    chunks: List[Document] = []
+    chunks: list[Document] = []
     i = 0  # index of the first segment of the current chunk
     n = len(segs)
 

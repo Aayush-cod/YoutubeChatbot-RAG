@@ -1,9 +1,7 @@
-from langchain_core.documents import Document
-from langchain_core.runnables import RunnableLambda
-
 from app import summarize
 from app.schemas import KeyPoint, VideoSummary
-
+from langchain_core.documents import Document
+from langchain_core.runnables import RunnableLambda
 
 
 def test_format_transcript_uses_seconds():

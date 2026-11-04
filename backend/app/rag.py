@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List
 
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
@@ -9,10 +8,9 @@ from langchain_groq import ChatGroq
 
 from .chunking import fmt_time
 from .config import get_settings
+from .rerank import rerank
 from .schemas import ChatTurn
 from .store import get_store
-
-from .rerank import rerank
 
 SYSTEM_PROMPT = """You answer questions about a YouTube video using ONLY the transcript excerpts below.
 Each excerpt starts with its timestamp in square brackets, like [1:05].
@@ -38,12 +36,12 @@ class VideoNotFound(Exception):
     """Raised when we have no stored transcript for a video."""
 
 
-def format_context(docs: List[Document]) -> str:
+def format_context(docs: list[Document]) -> str:
     """Turn retrieved chunks into text the model can read, with timestamps."""
     return "\n\n".join(f"[{fmt_time(d.metadata['start'])}] {d.page_content}" for d in docs)
 
 
-def to_messages(history: List[ChatTurn]) -> list:
+def to_messages(history: list[ChatTurn]) -> list:
     """Convert our chat turns into LangChain message objects."""
     return [
         HumanMessage(content=t.content) if t.role == "user" else AIMessage(content=t.content)
@@ -51,7 +49,7 @@ def to_messages(history: List[ChatTurn]) -> list:
     ]
 
 
-def format_sources(docs: List[Document]) -> List[dict]:
+def format_sources(docs: list[Document]) -> list[dict]:
     """The retrieved chunks, in the shape the extension will show."""
     return [
         {"start": d.metadata["start"], "end": d.metadata["end"], "text": d.page_content[:200]}
@@ -73,7 +71,7 @@ def clean_token(token: str) -> str:
 #         raise VideoNotFound(video_id)
 #     return store.similarity_search(question, k=get_settings().top_k)
 
-def retrieve(video_id: str, question: str) -> List[Document]:
+def retrieve(video_id: str, question: str) -> list[Document]:
     """Find the best chunks of this video for the question."""
     store = get_store(video_id)
     if store is None:

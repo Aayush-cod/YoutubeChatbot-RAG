@@ -1,11 +1,9 @@
 import pytest
-from langchain_core.documents import Document
-from langchain_core.embeddings import DeterministicFakeEmbedding
-
 from app import store
 from app.config import Settings
-
 from app.schemas import VideoSummary
+from langchain_core.documents import Document
+from langchain_core.embeddings import DeterministicFakeEmbedding
 
 
 @pytest.fixture(autouse=True)

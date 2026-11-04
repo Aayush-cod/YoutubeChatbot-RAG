@@ -1,12 +1,11 @@
 import pytest
+from app import rag, store
+from app.config import Settings
+from app.schemas import ChatTurn
 from langchain_core.documents import Document
 from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
-from app.schemas import ChatTurn
-
-from app import rag, store
-from app.config import Settings
 
 
 @pytest.fixture(autouse=True)
