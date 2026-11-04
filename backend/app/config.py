@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     rerank_candidates: int = 10
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    log_level: str = "INFO"
+
 
 @lru_cache
 def get_settings() -> Settings:

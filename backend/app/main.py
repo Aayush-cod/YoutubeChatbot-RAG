@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,9 @@ from .chunking import build_chunks
 from .config import get_settings
 from .schemas import ChatRequest, IngestRequest, IngestResponse, SummaryRequest, VideoSummary
 from .summarize import summarize_video
+from .logging_config import setup_logging
 
+setup_logging(get_settings().log_level)
 logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address)  # one counter per client IP
@@ -31,6 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request) #Pasees the request to the next step i.e endpoint and gets response
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    logger.info("%s %s -> %s (%.0f ms)", request.method, request.url.path, response.status_code, elapsed_ms)
+    return response
+
 
 @app.get("/health")
 def health():
@@ -43,6 +54,7 @@ def ingest(request: Request, req: IngestRequest):
     # Already processed this video? Reuse it instead of embedding again.
     existing = store.get_chunks(req.video_id)
     if existing is not None:
+        logger.info("ingest video=%s chunks=%d cached=True", req.video_id, len(existing))
         return IngestResponse(video_id=req.video_id, chunks=len(existing), cached=True)
 
     settings = get_settings()
@@ -51,6 +63,7 @@ def ingest(request: Request, req: IngestRequest):
         raise HTTPException(status_code=400, detail="Transcript has no usable text.")
 
     store.add_video(req.video_id, chunks)
+    logger.info("ingest video=%s chunks=%d cached=False", req.video_id, len(chunks))
     return IngestResponse(video_id=req.video_id, chunks=len(chunks), cached=False)
 
 
@@ -81,6 +94,7 @@ def _line(event: dict) -> str:
 @limiter.limit(lambda: get_settings().rate_limit_chat)
 def chat(request: Request, req: ChatRequest):
     # Retrieve BEFORE streaming starts, so a missing video can still be a proper 404.
+    started = time.perf_counter()
     try:
         docs = rag.retrieve(req.video_id, req.question)
     except rag.VideoNotFound:
@@ -88,6 +102,13 @@ def chat(request: Request, req: ChatRequest):
             status_code=404,
             detail="Video not found. Send its transcript to /ingest first.",
         )
+    logger.info(
+        "chat video=%s question_chars=%d retrieved=%d retrieval_ms=%.0f",
+        req.video_id,
+        len(req.question),
+        len(docs),
+        (time.perf_counter() - started) * 1000,
+    )
 
     def event_stream():
         yield _line({"type": "sources", "sources": rag.format_sources(docs)})

@@ -11,6 +11,8 @@ from app.main import app
 from app.schemas import KeyPoint, VideoSummary
 from app.config import Settings
 
+import logging
+
 
 @pytest.fixture()
 def client(monkeypatch):
@@ -174,3 +176,10 @@ def test_chat_is_rate_limited(client, monkeypatch):
     assert client.post("/chat", json=body).status_code == 404  # allowed (video just isn't there)
     assert client.post("/chat", json=body).status_code == 404  # allowed
     assert client.post("/chat", json=body).status_code == 429  # third call in a minute: blocked
+
+
+# caplog is a built-in pytest fixture that captures log lines so a test can inspect them.
+def test_requests_are_logged(client, caplog):
+    with caplog.at_level(logging.INFO, logger="app.main"):
+        client.get("/health")
+    assert any("/health" in r.message and "200" in r.message for r in caplog.records)
