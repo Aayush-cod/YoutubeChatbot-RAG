@@ -30,3 +30,24 @@ jobs:
       - name: Test
         working-directory: backend
         run: python -m pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t yt-rag-backend ./backend
+
+      - name: Run the container and check /health
+        run: |
+          docker run -d --name app -p 7860:7860 yt-rag-backend
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:7860/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "The server did not become healthy"
+          docker logs app
+          exit 1
