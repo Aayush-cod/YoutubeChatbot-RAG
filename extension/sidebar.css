@@ -1,0 +1,28 @@
+#yt-rag-panel {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  width: 340px;
+  max-height: calc(100vh - 100px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+#yt-rag-panel .yt-rag-header {
+  padding: 10px 14px;
+  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#yt-rag-panel .yt-rag-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+}
