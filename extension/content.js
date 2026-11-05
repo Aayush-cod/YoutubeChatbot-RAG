@@ -5,6 +5,7 @@ const ingestedVideos = new Set();
 // The conversation so far; sent to the server so follow-up questions make sense.
 let chatHistory = [];
 let chatBusy = false;
+let panelCollapsed = false;
 
 function getVideoId() {
   const url = new URL(window.location.href);
@@ -45,6 +46,7 @@ function renderSummary(container, summary) {
 }
 
 // Make sure the server has this video's transcript (send it once).
+// "status" is any element whose text we update with progress.
 async function ensureIngested(videoId, status) {
   if (ingestedVideos.has(videoId)) {
     return;
@@ -98,13 +100,20 @@ async function onSummarizeClick() {
   }
 }
 
+function scrollChatToEnd() {
+  const body = document.getElementById("yt-rag-body");
+  if (body) {
+    body.scrollTop = body.scrollHeight;
+  }
+}
+
 function addMessage(role, text) {
   const box = document.getElementById("yt-rag-messages");
   const element = document.createElement("div");
   element.className = `yt-rag-msg yt-rag-${role}`;
   element.textContent = text;
   box.append(element);
-  box.scrollTop = box.scrollHeight;
+  scrollChatToEnd();
   return element;
 }
 
@@ -119,8 +128,6 @@ async function onAsk(event) {
     return;
   }
   const input = document.getElementById("yt-rag-input");
-  const status = document.getElementById("yt-rag-status");
-  const box = document.getElementById("yt-rag-messages");
   const videoId = getVideoId();
   const question = input.value.trim();
   if (!question || !videoId) {
@@ -136,8 +143,9 @@ async function onAsk(event) {
   let sources = [];
 
   try {
-    await withIngest(videoId, status, () => {
-      status.textContent = "";
+    // Progress messages ("Reading transcript...") appear inside the answer bubble.
+    await withIngest(videoId, answerElement, () => {
+      answerElement.textContent = "Thinking...";
       answer = "";
       return streamChat(
         { video_id: videoId, question, history: chatHistory.slice(-10) },
@@ -147,7 +155,7 @@ async function onAsk(event) {
           } else if (item.type === "token") {
             answer += item.text;
             answerElement.textContent = answer;
-            box.scrollTop = box.scrollHeight;
+            scrollChatToEnd();
           }
         }
       );
@@ -161,19 +169,31 @@ async function onAsk(event) {
         line.className = "yt-rag-sources";
         line.textContent = "Sources: " + sources.map((s) => formatTime(s.start)).join(", ");
         answerElement.after(line);
-        box.scrollTop = box.scrollHeight;
+        scrollChatToEnd();
       }
     }
   } catch (error) {
-    status.textContent = error.message;
-    if (!answer) {
-      answerElement.remove();
-    }
+    // Show the problem inside the chat, where the person is looking.
+    answerElement.textContent = answer ? `${answer}\n\n(${error.message})` : error.message;
+    answerElement.classList.add("yt-rag-error");
   } finally {
     chatBusy = false;
     setChatDisabled(false);
     input.focus();
   }
+}
+
+function setCollapsed(collapsed) {
+  panelCollapsed = collapsed;
+  const panel = document.getElementById(PANEL_ID);
+  if (!panel) {
+    return;
+  }
+  panel.classList.toggle("yt-rag-collapsed", collapsed);
+  const toggle = document.getElementById("yt-rag-toggle");
+  toggle.textContent = collapsed ? "+" : "−";
+  toggle.setAttribute("aria-label", collapsed ? "Expand" : "Minimize");
+  toggle.setAttribute("aria-expanded", String(!collapsed));
 }
 
 function ensurePanel() {
@@ -182,24 +202,34 @@ function ensurePanel() {
     panel = document.createElement("div");
     panel.id = PANEL_ID;
     panel.innerHTML = `
-      <div class="yt-rag-header">Video Assistant</div>
-      <div class="yt-rag-body">
-        <p class="yt-rag-small">Video: <code id="yt-rag-video-id"></code></p>
-        <button id="yt-rag-summarize">Summarize video</button>
+      <div class="yt-rag-header" id="yt-rag-header">
+        <span class="yt-rag-title">✦ Video Assistant</span>
+        <button id="yt-rag-toggle" type="button" aria-label="Minimize" aria-expanded="true">−</button>
+      </div>
+      <div class="yt-rag-body" id="yt-rag-body">
+        <div class="yt-rag-toolbar">
+          <button id="yt-rag-summarize" type="button">Summarize video</button>
+        </div>
         <p id="yt-rag-status"></p>
         <div id="yt-rag-result"></div>
-        <h4>Ask about this video</h4>
         <div id="yt-rag-messages"></div>
-        <form id="yt-rag-form">
-          <input id="yt-rag-input" type="text" maxlength="1000"
-                 placeholder="Ask a question..." autocomplete="off">
-          <button id="yt-rag-send" type="submit">Send</button>
-        </form>
       </div>
+      <form id="yt-rag-form">
+        <input id="yt-rag-input" type="text" maxlength="1000"
+               placeholder="Ask about this video" autocomplete="off">
+        <button id="yt-rag-send" type="submit" aria-label="Send">➤</button>
+      </form>
     `;
+    panel.querySelector("#yt-rag-header").addEventListener("click", (event) => {
+      // minimized: clicking anywhere on the header expands; open: only the button minimizes
+      if (panelCollapsed || event.target.closest("#yt-rag-toggle")) {
+        setCollapsed(!panelCollapsed);
+      }
+    });
     panel.querySelector("#yt-rag-summarize").addEventListener("click", onSummarizeClick);
     panel.querySelector("#yt-rag-form").addEventListener("submit", onAsk);
     document.body.appendChild(panel);
+    setCollapsed(panelCollapsed); // keep the minimized state if the panel is re-created
   }
   return panel;
 }
@@ -223,7 +253,6 @@ function update() {
     document.getElementById("yt-rag-result").textContent = "";
     document.getElementById("yt-rag-messages").textContent = "";
   }
-  document.getElementById("yt-rag-video-id").textContent = videoId;
 }
 
 // YouTube changes videos without reloading the page, and fires this event when it does.

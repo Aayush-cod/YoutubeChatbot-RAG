@@ -1,65 +1,152 @@
+/* ---------- colors (light by default, dark when YouTube is in dark mode) ---------- */
 #yt-rag-panel {
+  --rag-bg: #ffffff;
+  --rag-text: #0f0f0f;
+  --rag-muted: #606060;
+  --rag-chip: #f2f2f2;
+  --rag-chip-hover: #e5e5e5;
+  --rag-border: rgba(0, 0, 0, 0.12);
+  --rag-accent: #065fd4;
+  --rag-accent-text: #ffffff;
+  --rag-error-bg: #fdecea;
+  --rag-error-text: #b3261e;
+
   position: fixed;
-  top: 70px;
   right: 16px;
-  width: 340px;
-  max-height: calc(100vh - 100px);
+  bottom: 16px;
+  width: 380px;
+  height: min(620px, calc(100vh - 100px));
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  color: #111111;
-  border: 1px solid #d0d0d0;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  font-family: Arial, sans-serif;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--rag-bg);
+  color: var(--rag-text);
+  border: 1px solid var(--rag-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  font-family: "Roboto", "Arial", sans-serif;
   font-size: 14px;
+  line-height: 1.45;
 }
 
+html[dark] #yt-rag-panel {
+  --rag-bg: #0f0f0f;
+  --rag-text: #f1f1f1;
+  --rag-muted: #aaaaaa;
+  --rag-chip: #272727;
+  --rag-chip-hover: #3f3f3f;
+  --rag-border: rgba(255, 255, 255, 0.15);
+  --rag-accent: #3ea6ff;
+  --rag-accent-text: #0f0f0f;
+  --rag-error-bg: #3b1613;
+  --rag-error-text: #ffb4ab;
+}
+
+/* ---------- header ---------- */
 #yt-rag-panel .yt-rag-header {
-  padding: 10px 14px;
-  font-weight: bold;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-#yt-rag-panel .yt-rag-body {
-  padding: 12px 14px;
-  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--rag-border);
+  font-size: 16px;
+  font-weight: 500;
 }
 
 #yt-rag-panel button {
-  padding: 6px 12px;
-  margin-top: 4px;
+  font: inherit;
   border: none;
-  border-radius: 8px;
-  background: #0f62fe;
-  color: #ffffff;
-  font-size: 13px;
   cursor: pointer;
 }
 
-#yt-rag-panel button:hover {
-  background: #0043ce;
+#yt-rag-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--rag-text);
+  font-size: 22px;
+  line-height: 1;
 }
 
-#yt-rag-panel #yt-rag-status {
-  margin-top: 10px;
-  color: #444444;
+#yt-rag-toggle:hover {
+  background: var(--rag-chip);
 }
 
-#yt-rag-panel button:disabled {
-  background: #8d8d8d;
+/* ---------- minimized: only the header pill is shown ---------- */
+#yt-rag-panel.yt-rag-collapsed {
+  width: auto;
+  height: auto;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+#yt-rag-panel.yt-rag-collapsed .yt-rag-header {
+  border-bottom: none;
+  gap: 12px;
+  padding: 6px 8px 6px 16px;
+}
+
+#yt-rag-panel.yt-rag-collapsed .yt-rag-body,
+#yt-rag-panel.yt-rag-collapsed #yt-rag-form {
+  display: none;
+}
+
+/* ---------- scrolling middle part ---------- */
+#yt-rag-panel .yt-rag-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px;
+  scrollbar-width: thin;
+}
+
+#yt-rag-summarize {
+  padding: 8px 16px;
+  border-radius: 18px;
+  background: var(--rag-chip);
+  color: var(--rag-text);
+  font-weight: 500;
+}
+
+#yt-rag-summarize:hover:not(:disabled) {
+  background: var(--rag-chip-hover);
+}
+
+#yt-rag-summarize:disabled {
+  opacity: 0.5;
   cursor: default;
+}
+
+#yt-rag-status {
+  margin: 8px 0 0;
+  color: var(--rag-muted);
+  font-size: 13px;
+}
+
+#yt-rag-status:empty {
+  display: none;
+}
+
+/* ---------- summary card ---------- */
+#yt-rag-result:not(:empty) {
+  margin-top: 12px;
+  padding: 2px 14px 10px;
+  background: var(--rag-chip);
+  border-radius: 12px;
 }
 
 #yt-rag-panel h4 {
   margin: 12px 0 4px;
   font-size: 14px;
+  font-weight: 500;
+  color: var(--rag-text);
 }
 
 #yt-rag-panel p {
   margin: 6px 0;
-  line-height: 1.4;
 }
 
 #yt-rag-panel ul {
@@ -69,71 +156,101 @@
 
 #yt-rag-panel li {
   margin-bottom: 6px;
-  line-height: 1.4;
 }
 
-#yt-rag-panel .yt-rag-small,
 #yt-rag-panel .yt-rag-topics {
-  color: #555555;
+  color: var(--rag-muted);
   font-size: 12px;
 }
 
+/* ---------- chat messages ---------- */
 #yt-rag-messages {
-  max-height: 260px;
-  overflow-y: auto;
-  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#yt-rag-messages:empty::before {
+  content: "Ask a question about this video, or tap Summarize.";
+  padding: 24px 8px;
+  color: var(--rag-muted);
+  text-align: center;
 }
 
 #yt-rag-panel .yt-rag-msg {
-  padding: 8px 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  line-height: 1.4;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 #yt-rag-panel .yt-rag-user {
-  background: #e8f0fe;
-  margin-left: 24px;
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 8px 14px;
+  background: var(--rag-chip);
+  border-radius: 18px;
 }
 
 #yt-rag-panel .yt-rag-assistant {
-  background: #f1f1f1;
-  margin-right: 24px;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0 2px;
+}
+
+#yt-rag-panel .yt-rag-error {
+  padding: 8px 12px;
+  background: var(--rag-error-bg);
+  color: var(--rag-error-text);
+  border-radius: 12px;
 }
 
 #yt-rag-panel .yt-rag-sources {
+  margin: -4px 0 0 2px;
+  color: var(--rag-muted);
   font-size: 12px;
-  color: #555555;
-  margin: 0 0 6px 4px;
 }
 
+/* ---------- input row ---------- */
 #yt-rag-form {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--rag-border);
 }
 
 #yt-rag-input {
   flex: 1;
   min-width: 0;
-  padding: 8px;
-  border: 1px solid #c4c4c4;
-  border-radius: 6px;
-  color: #111111;
-  background: #ffffff;
-  font-size: 14px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: 1px solid var(--rag-border);
+  border-radius: 20px;
+  background: var(--rag-bg);
+  color: var(--rag-text);
+  font: inherit;
+  outline: none;
+}
+
+#yt-rag-input::placeholder {
+  color: var(--rag-muted);
+}
+
+#yt-rag-input:focus {
+  border-color: var(--rag-accent);
 }
 
 #yt-rag-send {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  background: #1a56db;
-  color: #ffffff;
-  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--rag-accent);
+  color: var(--rag-accent-text);
+  font-size: 16px;
 }
 
-#yt-rag-send:disabled {
-  background: #8d8d8d;
+#yt-rag-send:disabled,
+#yt-rag-input:disabled {
+  opacity: 0.5;
   cursor: default;
 }
