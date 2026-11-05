@@ -77,3 +77,63 @@
   color: #555555;
   font-size: 12px;
 }
+
+#yt-rag-messages {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+#yt-rag-panel .yt-rag-msg {
+  padding: 8px 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+#yt-rag-panel .yt-rag-user {
+  background: #e8f0fe;
+  margin-left: 24px;
+}
+
+#yt-rag-panel .yt-rag-assistant {
+  background: #f1f1f1;
+  margin-right: 24px;
+}
+
+#yt-rag-panel .yt-rag-sources {
+  font-size: 12px;
+  color: #555555;
+  margin: 0 0 6px 4px;
+}
+
+#yt-rag-form {
+  display: flex;
+  gap: 6px;
+}
+
+#yt-rag-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #c4c4c4;
+  border-radius: 6px;
+  color: #111111;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+#yt-rag-send {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #1a56db;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+#yt-rag-send:disabled {
+  background: #8d8d8d;
+  cursor: default;
+}
