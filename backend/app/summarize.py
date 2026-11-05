@@ -34,7 +34,7 @@ def format_transcript(docs: list[Document]) -> str:
 @lru_cache
 def get_summary_llm():
     """The Groq model, forced to reply in the VideoSummary shape."""
-    return get_llm().with_structured_output(VideoSummary)
+    return get_llm().with_structured_output(VideoSummary, method="json_schema")
 
 
 def summarize_docs(docs: list[Document], structured_llm=None) -> VideoSummary:

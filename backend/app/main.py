@@ -87,7 +87,14 @@ def summary(request: Request, req: SummaryRequest):
             detail="Video not found. Send its transcript to /ingest first.",
         )
 
-    result = summarize_video(chunks)
+    try:
+        result = summarize_video(chunks)
+    except Exception:
+        logger.exception("summary failed video=%s", req.video_id)
+        raise HTTPException(
+        status_code=502,
+        detail="The AI service failed while summarizing. Please try again.",
+        )
     store.set_summary(req.video_id, result)
     return result
 
