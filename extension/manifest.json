@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
-      "js": ["content.js"],
+      "js": ["transcript.js", "content.js"],
       "css": ["sidebar.css"],
       "run_at": "document_idle"
     }

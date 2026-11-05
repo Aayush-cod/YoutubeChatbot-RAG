@@ -26,3 +26,23 @@
   padding: 12px 14px;
   overflow-y: auto;
 }
+
+#yt-rag-panel button {
+  padding: 6px 12px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 8px;
+  background: #0f62fe;
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#yt-rag-panel button:hover {
+  background: #0043ce;
+}
+
+#yt-rag-panel #yt-rag-status {
+  margin-top: 10px;
+  color: #444444;
+}
