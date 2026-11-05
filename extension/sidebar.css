@@ -46,3 +46,34 @@
   margin-top: 10px;
   color: #444444;
 }
+
+#yt-rag-panel button:disabled {
+  background: #8d8d8d;
+  cursor: default;
+}
+
+#yt-rag-panel h4 {
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+
+#yt-rag-panel p {
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+#yt-rag-panel ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+#yt-rag-panel li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+#yt-rag-panel .yt-rag-small,
+#yt-rag-panel .yt-rag-topics {
+  color: #555555;
+  font-size: 12px;
+}
