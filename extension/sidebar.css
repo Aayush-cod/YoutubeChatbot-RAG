@@ -254,3 +254,41 @@ html[dark] #yt-rag-panel {
   opacity: 0.5;
   cursor: default;
 }
+
+#yt-rag-panel .yt-rag-time {
+  padding: 0;
+  background: none;
+  color: var(--rag-accent);
+  font-size: inherit;
+  font-weight: 500;
+}
+
+#yt-rag-panel .yt-rag-time:hover {
+  text-decoration: underline;
+}
+
+/* answers are now real paragraphs and lists, so normal whitespace rules apply */
+#yt-rag-panel .yt-rag-assistant {
+  white-space: normal;
+}
+
+#yt-rag-panel .yt-rag-assistant p {
+  margin: 0 0 6px;
+}
+
+#yt-rag-panel .yt-rag-assistant ul {
+  margin: 0 0 6px;
+  padding-left: 20px;
+}
+
+#yt-rag-panel .yt-rag-assistant.yt-rag-error {
+  white-space: pre-wrap;
+}
+
+#yt-rag-panel .yt-rag-logo {
+  color: #ff0000;
+}
+
+#yt-rag-toggle {
+  color: #ff0000;
+}

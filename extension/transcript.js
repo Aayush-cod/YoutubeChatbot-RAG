@@ -96,3 +96,15 @@ async function loadTranscript() {
   }
   return segments;
 }
+
+// Jump the YouTube player to a time (in seconds).
+function seekVideo(seconds) {
+  const video = document.querySelector("video.html5-main-video") || document.querySelector("video");
+  if (!video) {
+    return;
+  }
+  video.currentTime = seconds;
+  if (video.paused) {
+    video.play().catch(() => {});
+  }
+}

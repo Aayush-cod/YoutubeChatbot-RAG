@@ -15,6 +15,72 @@ function getVideoId() {
   return url.searchParams.get("v");
 }
 
+// A small blue "1:05" link that seeks the video when clicked.
+function makeTimeButton(seconds) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "yt-rag-time";
+  button.textContent = formatTime(seconds);
+  button.addEventListener("click", () => seekVideo(seconds));
+  return button;
+}
+
+// Add text to an element, turning **bold** into <strong> and [m:ss] into time links.
+function appendInline(parent, text) {
+  const pattern = /\*\*(.+?)\*\*|\[(\d{1,2}:\d{2}(?::\d{2})?)\]/g;
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    parent.append(text.slice(last, match.index));
+    if (match[1] !== undefined) {
+      const strong = document.createElement("strong");
+      strong.textContent = match[1];
+      parent.append(strong);
+    } else {
+      parent.append(makeTimeButton(parseTimestamp(match[2])));
+    }
+    last = match.index + match[0].length;
+  }
+  parent.append(text.slice(last));
+}
+
+// Turn the model's text into paragraphs and bullet lists, line by line.
+function renderRichText(container, text) {
+  container.textContent = "";
+  let list = null;
+  for (const line of text.split("\n")) {
+    const bullet = line.match(/^\s*[*-]\s+(.*)$/);
+    if (bullet) {
+      if (!list) {
+        list = document.createElement("ul");
+        container.append(list);
+      }
+      const item = document.createElement("li");
+      appendInline(item, bullet[1]);
+      list.append(item);
+    } else {
+      list = null;
+      if (line.trim() === "") {
+        continue;
+      }
+      const paragraph = document.createElement("p");
+      appendInline(paragraph, line);
+      container.append(paragraph);
+    }
+  }
+}
+
+// "Sources: 0:00 2:04 3:57", sorted by time, each one a link.
+function buildSourcesLine(sources) {
+  const starts = [...new Set(sources.map((s) => Math.floor(s.start)))].sort((a, b) => a - b);
+  const line = document.createElement("div");
+  line.className = "yt-rag-sources";
+  line.append("Sources: ");
+  for (const start of starts) {
+    line.append(makeTimeButton(start), " ");
+  }
+  return line;
+}
+
 function renderSummary(container, summary) {
   container.textContent = "";
 
@@ -30,8 +96,10 @@ function renderSummary(container, summary) {
     const list = document.createElement("ul");
     for (const point of summary.key_points) {
       const item = document.createElement("li");
-      const when = point.timestamp_seconds == null ? "" : `[${formatTime(point.timestamp_seconds)}] `;
-      item.textContent = when + point.point;
+      if (point.timestamp_seconds != null) {
+        item.append(makeTimeButton(point.timestamp_seconds), " ");
+      }
+      item.append(point.point);
       list.append(item);
     }
     container.append(pointsHeading, list);
@@ -58,6 +126,7 @@ async function ensureIngested(videoId, status) {
   ingestedVideos.add(videoId);
 }
 
+
 // Run an action that needs the transcript on the server. If the server says it
 // doesn't have it (for example, it was restarted), send it again and retry once.
 async function withIngest(videoId, status, action) {
@@ -73,6 +142,8 @@ async function withIngest(videoId, status, action) {
     return await action();
   }
 }
+
+
 
 async function onSummarizeClick() {
   const videoId = getVideoId();
@@ -100,12 +171,16 @@ async function onSummarizeClick() {
   }
 }
 
+
+
 function scrollChatToEnd() {
   const body = document.getElementById("yt-rag-body");
   if (body) {
     body.scrollTop = body.scrollHeight;
   }
 }
+
+
 
 function addMessage(role, text) {
   const box = document.getElementById("yt-rag-messages");
@@ -121,6 +196,7 @@ function setChatDisabled(disabled) {
   document.getElementById("yt-rag-input").disabled = disabled;
   document.getElementById("yt-rag-send").disabled = disabled;
 }
+
 
 async function onAsk(event) {
   event.preventDefault(); // stop the form from reloading the page
@@ -154,7 +230,7 @@ async function onAsk(event) {
             sources = item.sources || [];
           } else if (item.type === "token") {
             answer += item.text;
-            answerElement.textContent = answer;
+            renderRichText(answerElement, answer);
             scrollChatToEnd();
           }
         }
@@ -164,11 +240,8 @@ async function onAsk(event) {
     if (getVideoId() === videoId) {
       chatHistory.push({ role: "user", content: question });
       chatHistory.push({ role: "assistant", content: answer });
-      if (sources.length > 0) {
-        const line = document.createElement("div");
-        line.className = "yt-rag-sources";
-        line.textContent = "Sources: " + sources.map((s) => formatTime(s.start)).join(", ");
-        answerElement.after(line);
+      if (sources.length > 0 && /\[\d{1,2}:\d{2}/.test(answer)) {
+        answerElement.after(buildSourcesLine(sources));
         scrollChatToEnd();
       }
     }
@@ -203,7 +276,7 @@ function ensurePanel() {
     panel.id = PANEL_ID;
     panel.innerHTML = `
       <div class="yt-rag-header" id="yt-rag-header">
-        <span class="yt-rag-title">✦ Video Assistant</span>
+        <span class="yt-rag-title"><span class="yt-rag-logo">✦</span>  Video Assistant</span>
         <button id="yt-rag-toggle" type="button" aria-label="Minimize" aria-expanded="true">−</button>
       </div>
       <div class="yt-rag-body" id="yt-rag-body">
