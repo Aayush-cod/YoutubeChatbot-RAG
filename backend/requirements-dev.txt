@@ -1,4 +1,4 @@
 -r requirements.txt
-pytest
-httpx                  # lets tests call the FastAPI app
-ruff                   # linter / formatter
+pytest==9.1.1
+httpx==0.28.1
+ruff==0.17.2               # linter / formatter
