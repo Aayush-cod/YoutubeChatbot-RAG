@@ -21,4 +21,4 @@ RUN python -c "from sentence_transformers import SentenceTransformer, CrossEncod
 COPY --chown=user app ./app
 
 EXPOSE 7860
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860", "--proxy-headers", "--forwarded-allow-ips", "*"]
