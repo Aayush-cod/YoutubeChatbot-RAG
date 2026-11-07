@@ -5,7 +5,9 @@ A Chrome extension that adds a chat panel to YouTube. It can **summarize a video
 Built as a learning project: LangChain, RAG, FastAPI, Docker, CI, and deployment on AWS.
 
 
-![alt text](image.png)
+![Chat with timestamped answers](docs/api.png)
+![Summary with key points](docs/extension.png)
+![Installed in Chrome](docs/extension_yt.png)
 
 ## Features
 
