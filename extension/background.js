@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://16-178-109-110.sslip.io";
 
 // Extension background workers get shut down after ~30 s of silence.
 // Calling any extension API every 20 s counts as activity and keeps it alive

@@ -3,7 +3,7 @@
   "name": "YouTube RAG Assistant",
   "version": "0.2.0",
   "description": "Summarize a YouTube video and chat with it.",
-  "host_permissions": ["http://localhost:8000/*"],
+  "host_permissions": ["http://localhost:8000/*", "https://16-178-109-110.sslip.io/*"],
   "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
