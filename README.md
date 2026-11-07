@@ -30,6 +30,44 @@ flowchart LR
 3. For a question, it retrieves 10 candidates, reranks them with a cross-encoder (`ms-marco-MiniLM-L-6-v2`), and gives the best 5 to the LLM (`openai/gpt-oss-120b` on Groq), which must answer only from those excerpts.
 4. Answers stream back as NDJSON. Summaries use structured output; long videos are summarized in batches and then merged.
 
+### The RAG pipeline in detail
+
+```mermaid
+flowchart TD
+  subgraph ingest["1. Ingest (once per video)"]
+    T["Transcript lines from the YouTube page<br/>(text, start, duration)"] --> C["Time-aware chunking<br/>~1000 chars, 200 overlap<br/>keeps start and end time"]
+    C --> EM["Embeddings<br/>all-MiniLM-L6-v2, run locally"]
+    EM --> IDX[("FAISS index<br/>in memory, one per video")]
+  end
+
+  subgraph ask["2. Ask a question"]
+    Q["Question + last 10 messages"] --> R["Retrieve 10 candidates<br/>by vector similarity"]
+    IDX --> R
+    R --> RR["Rerank with a cross-encoder<br/>keep the best 5"]
+    RR --> P["Prompt: answer only from the excerpts<br/>history + excerpts with timestamps"]
+    P --> L["LLM on Groq<br/>gpt-oss-120b"]
+    L --> S["Stream tokens as NDJSON<br/>normalize odd characters"]
+    S --> U["Panel shows the answer<br/>m:ss citations become links"]
+  end
+
+  subgraph sum["3. Summary"]
+    C --> B["Group chunks into batches<br/>about 12,000 characters"]
+    B --> M["Map: summarize each batch"]
+    M --> RD["Reduce: merge the partial summaries<br/>as structured output"]
+    RD --> V["Summary + key points + topics"]
+  end
+```
+
+| Stage | Code |
+|---|---|
+| Chunking with timestamps | `backend/app/chunking.py` |
+| Embeddings and FAISS store (LRU cache) | `backend/app/store.py` |
+| Retrieval, prompt, LLM chain | `backend/app/rag.py` |
+| Reranker | `backend/app/rerank.py` |
+| Summaries (map-reduce, structured output) | `backend/app/summarize.py` |
+| API, streaming, rate limits | `backend/app/main.py` |
+| Evaluation (hit rate, MRR) | `backend/app/evaluation.py`, `eval/` |
+
 ## Retrieval quality
 
 Measured on a hand-written set of 20 questions (with the time window where each answer lives) on one 51-minute video:
