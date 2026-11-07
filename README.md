@@ -5,9 +5,22 @@ A Chrome extension that adds a chat panel to YouTube. It can **summarize a video
 Built as a learning project: LangChain, RAG, FastAPI, Docker, CI, and deployment on AWS.
 
 
-![Chat with timestamped answers](docs/api.png)
-![Summary with key points](docs/extension.png)
-![Installed in Chrome](docs/extension_yt.png)
+<p align="center">
+  <img src="docs/extension_yt.png" alt="The assistant panel next to a YouTube video" width="90%">
+  <br>
+  <sub>Ask a question about a video. Answers cite the exact moments, and the timestamps jump the video there.</sub>
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/extension.png" alt="The extension installed in Chrome"></td>
+    <td width="50%"><img src="docs/api.png" alt="The backend API documentation page"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Installed in Chrome</sub></td>
+    <td align="center"><sub>Backend API running on AWS (FastAPI docs)</sub></td>
+  </tr>
+</table>
 
 ## Features
 
